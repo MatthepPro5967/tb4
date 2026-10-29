@@ -1,0 +1,7 @@
+# Made by ./build.sh
+build/
+install/
+log/
+# Made by add_markers.py
+markers/
+__pycache__/
