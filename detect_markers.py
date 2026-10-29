@@ -33,6 +33,7 @@ class MarkerDetector(Node):
         self.bridge = CvBridge()
         self.camera_matrix = None
         self.seen = set()  # markers that were in view last frame
+        self.got_frame = False
         self.create_subscription(CameraInfo, '/oakd/rgb/preview/camera_info', self.on_info, 10)
         self.create_subscription(Image, '/oakd/rgb/preview/image_raw', self.on_image, 10)
 
@@ -42,6 +43,9 @@ class MarkerDetector(Node):
         self.distortion = np.array(msg.d)
 
     def on_image(self, msg):
+        if not self.got_frame:
+            self.got_frame = True
+            print('Camera connected. Point the robot at a marker.', flush=True)
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -61,7 +65,7 @@ class MarkerDetector(Node):
                 if marker_id not in self.seen:
                     name = NAMES.get(marker_id, f'marker {marker_id}')
                     distance = np.linalg.norm(tvec)
-                    print(f'I see {name}! ({distance:.2f} m away)')
+                    print(f'I see {name}! ({distance:.2f} m away)', flush=True)
         self.seen = in_view
 
         # Show it 2x bigger, since the sim camera is only 320x240.
@@ -71,6 +75,7 @@ class MarkerDetector(Node):
 
 def main():
     rclpy.init()
+    print('Waiting for the camera... (Ctrl+C to stop)', flush=True)
     rclpy.spin(MarkerDetector())
 
 
